@@ -1,28 +1,33 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\PostController;
+use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
     return view('welcome');
 });
 
+Route::get('/dashboard', function () {
+    return view('dashboard');
+})->middleware(['auth', 'verified'])->name('dashboard');
+
+
 Route::get('/posts', [PostController::class, 'index'])->name('posts.index');
 
-// 投稿フォーム表示
-Route::get('/posts/create', [PostController::class, 'create'])->name('posts.create');
+Route::middleware('auth')->group(function () {
+    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
-// 記事詳細
+    // Day
+    Route::get('/posts/create', [PostController::class, 'create'])->name('posts.create');
+    Route::post('/posts', [PostController::class, 'store'])->name('posts.store');
+    Route::get('/posts/{post}/edit', [PostController::class, 'edit'])->name('posts.edit');
+    Route::put('/posts/{post}', [PostController::class, 'update'])->name('posts.update');
+    Route::delete('/posts/{post}', [PostController::class, 'destroy'])->name('posts.destroy');
+});
+
 Route::get('/posts/{post}', [PostController::class, 'show'])->name('posts.show');
 
-// 投稿処理
-Route::post('/posts', [PostController::class, 'store'])->name('posts.store');
-
-// 編集フォーム表示
-Route::get('/posts/{post}/edit', [PostController::class, 'edit'])->name('posts.edit');
-
-// 更新処理
-Route::put('/posts/{post}', [PostController::class, 'update'])->name('posts.update');
-
-// 削除処理
-Route::delete('/posts/{post}', [PostController::class, 'destroy'])->name('posts.destroy');
+require __DIR__ . '/auth.php';

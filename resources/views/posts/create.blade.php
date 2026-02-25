@@ -42,6 +42,16 @@
             <input type="hidden" name="body" id="body">
         </div>
 
+        <!-- ⬇️ ここら辺に追加する。 -->
+        <div>
+            <label>
+                <input type="checkbox" name="is_published" value="1" {{ old('is_published') ? 'checked' : '' }}>
+                公開する
+            </label>
+        </div>
+        <!-- ⬆️ ここら辺に追加する。 -->
+
+
         <button type="submit">投稿する</button>
     </form>
 

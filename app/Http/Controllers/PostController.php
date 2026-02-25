@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Post;
+use App\Http\Requests\StorePostRequest;
+use App\Http\Requests\UpdatePostRequest;
 
 class PostController extends Controller
 {
@@ -12,7 +14,7 @@ class PostController extends Controller
      */
     public function index()
     {
-        $posts = Post::latest()->get();
+        $posts = Post::where('is_published', true)->latest()->get();
         return view('posts.index', compact('posts'));
     }
 
@@ -27,15 +29,14 @@ class PostController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(StorePostRequest $request)
     {
-        $validated = $request->validate([
-            'title' => 'required|max:255',
-            'body' => 'required',
-            'category' => 'required|in:tech,life,idea',
-        ]);
+        // バリデーションはFormRequestが自動で行ってくれる
+        $data = $request->validated();
+        $data['user_id'] = auth()->id(); // ←ログイン中のユーザーIDをセット
+        $data['is_published'] = $request->boolean('is_published');
 
-        Post::create($validated);
+        Post::create($data);
 
         return redirect()->route('posts.index');
     }
@@ -53,21 +54,20 @@ class PostController extends Controller
      */
     public function edit(Post $post)
     {
+        abort_if($post->user_id !== auth()->id(), 403);
         return view('posts.edit', compact('post'));
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Post $post)
+    public function update(UpdatePostRequest $request, Post $post)
     {
-        $validated = $request->validate([
-            'title' => 'required|max:255',
-            'body' => 'required',
-            'category' => 'required|in:tech,life,idea',
-        ]);
+        abort_if($post->user_id !== auth()->id(), 403);
 
-        $post->update($validated);
+        $data = $request->validated();
+        $data['is_published'] = $request->boolean('is_published');
+        $post->update($data);
 
         return redirect()->route('posts.show', $post);
     }
@@ -77,8 +77,8 @@ class PostController extends Controller
      */
     public function destroy(Post $post)
     {
+        abort_if($post->user_id !== auth()->id(), 403);
         $post->delete();
-
         return redirect()->route('posts.index');
     }
 }
