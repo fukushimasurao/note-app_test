@@ -8,12 +8,15 @@
 
 <body>
     <a href="{{ route('posts.index') }}">← 一覧に戻る</a>
+
     <h1>{{ $post->title }}</h1>
     <span>{{ $post->category }}</span>
     <span>{{ $post->created_at->format('Y/m/d') }}</span>
-    <div>{!! $post->body !!}</div>
+    <hr>
+    <div id="toc"></div>
+    <hr>
+    <div id="article-body">{!! $post->body !!}</div>
     <span>投稿者：{{ $post->user->name }}</span>
-
 
     @auth
         @if($post->user_id === auth()->id())
@@ -25,6 +28,29 @@
             </form>
         @endif
     @endauth
+    <script>
+        const body = document.getElementById('article-body');
+        const toc = document.getElementById('toc');
+        const headers = body.querySelectorAll('h1, h2');
+
+        if (headers.length > 0) {
+            const list = document.createElement('ul');
+
+            headers.forEach((header) => {
+                const item = document.createElement('li');
+                item.textContent = header.textContent;
+
+                // h2はh1より少しインデントする
+                if (header.tagName === 'H2') {
+                    item.style.marginLeft = '16px';
+                }
+
+                list.appendChild(item);
+            });
+
+            toc.appendChild(list);
+        }
+    </script>
 </body>
 
 </html>
